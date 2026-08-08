@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.12-slim-bookworm
 
 # System libraries WeasyPrint needs to render PDFs (this is the Linux
 # equivalent of the GTK runtime we had to install separately on Windows -
