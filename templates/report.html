@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: A4; margin: 14mm 12mm; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 9px; color: #222; margin: 0; }
+  .brand-bar { background: #0e9488; color: white; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; }
+  .brand-bar h1 { font-size: 11px; margin: 0; }
+  h2.section { color: #0e9488; font-size: 13px; margin: 10px 0 4px; border-bottom: 2px solid #0e9488; padding-bottom: 2px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+  th, td { border: 1px solid #ccc; padding: 3px 5px; font-size: 8px; text-align: left; }
+  th { background: #0e9488; color: white; }
+  .rating-badge { display: inline-block; padding: 4px 14px; font-weight: bold; border-radius: 3px; font-size: 12px; }
+  .rating-BUY { background: #2e7d32; color: white; }
+  .rating-ACCUMULATE { background: #558b2f; color: white; }
+  .rating-HOLD { background: #f9a825; color: white; }
+  .rating-REDUCE, .rating-SELL { background: #c62828; color: white; }
+  .rating-NOT_RATED { background: #78716c; color: white; }
+  .two-col { display: flex; gap: 12px; }
+  .col { flex: 1; }
+  .bullets { margin: 4px 0; padding-left: 14px; }
+  .bullets li { margin-bottom: 3px; }
+  .na { color: #aaa; font-style: italic; }
+  .footer { text-align: center; color: #0e9488; font-size: 7px; margin-top: 10px; border-top: 1px solid #ccc; padding-top: 4px; }
+  .trust-strip { background: #eef7f5; border: 1px solid #0e9488; padding: 4px 8px; font-size: 7px; color: #0a6e64; margin-bottom: 8px; display: flex; justify-content: space-between; }
+  .trust-strip b { color: #0e9488; }
+  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .chart-grid img { width: 100%; }
+  .page-break { page-break-before: always; }
+  .disclaimer-text { font-size: 6.5px; line-height: 1.4; color: #444; white-space: pre-wrap; }
+  .sidebar-title { background: #0e9488; color: white; padding: 2px 5px; font-size: 8px; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<!-- ============ PAGE 1 ============ -->
+<div class="brand-bar">
+  <h1>{{ meta.company_name | default("N/A") }} &mdash; Equity Research</h1>
+  <span>{{ meta.report_date | default("N/A") }}</span>
+</div>
+
+<div class="two-col" style="margin-top:6px;">
+  <div style="flex:2">
+    <h1 style="font-size:18px;margin:4px 0;">{{ meta.company_name | default("N/A") }}</h1>
+    <div>Sector: {{ meta.sector | default("N/A") }}</div>
+  </div>
+  <div style="flex:1;text-align:right;">
+    <span class="rating-badge rating-{{ rating_block.rating | default('NOT RATED') | replace(' ','_') }}">
+      {{ rating_block.rating | default("NOT RATED") }}
+    </span>
+  </div>
+</div>
+
+<table>
+  <tr>
+    <td>Target: <b>{% if rating_block.target_price %}Rs. {{ rating_block.target_price }}{% else %}<span class="na">N/A</span>{% endif %}</b></td>
+    <td>CMP: <b>{% if rating_block.cmp %}Rs. {{ rating_block.cmp }}{% else %}<span class="na">N/A</span>{% endif %}</b></td>
+    <td>Return: <b>{% if rating_block.return_pct %}{{ "%.1f"|format(rating_block.return_pct) }}%{% else %}<span class="na">N/A</span>{% endif %}</b></td>
+    <td>Time Frame: {{ rating_block.time_frame | default("12 Months") }}</td>
+  </tr>
+</table>
+
+<div class="two-col">
+  <div class="col">
+    <div class="sidebar-title">Company Data</div>
+    <table>
+      {% for label, key in [("Market Cap (Rs.cr)","market_cap_cr"),("52W High-Low","week_52_high"),
+                             ("Enterprise Value (Rs.cr)","enterprise_value_cr"),("Outstanding Shares (cr)","outstanding_shares_cr"),
+                             ("Free Float (%)","free_float_pct"),("Beta","beta")] %}
+      <tr><td>{{ label }}</td><td>
+        {% set v = company_data.get(key) %}
+        {% if v is not none %}{{ v }}{% else %}<span class="na">N/A</span>{% endif %}
+      </td></tr>
+      {% endfor %}
+    </table>
+
+    <div class="sidebar-title">Shareholding (%)</div>
+    {% set has_shareholding = shareholding and shareholding|selectattr("category")|list %}
+    {% if has_shareholding %}
+    <table>
+      <tr><th>Category</th><th>Q-2</th><th>Q-1</th><th>Latest</th></tr>
+      {% for row in shareholding %}
+      <tr><td>{{ row.category }}</td><td>{{ row.q_minus_2 | default("N/A") }}</td>
+          <td>{{ row.q_minus_1 | default("N/A") }}</td><td>{{ row.q_latest | default("N/A") }}</td></tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <p class="na">Not disclosed in source document.</p>
+    {% endif %}
+  </div>
+
+  <div class="col" style="flex:1.6">
+    <div class="sidebar-title">Overview</div>
+    <p>{{ narrative.company_overview | default("N/A") }}</p>
+
+    <div class="sidebar-title">Highlights</div>
+    <ul class="bullets">
+      {% for b in narrative.key_bullets %}<li>{{ b }}</li>{% endfor %}
+    </ul>
+  </div>
+</div>
+
+<h2 class="section">Outlook &amp; Valuation</h2>
+<p>{{ narrative.outlook_valuation | default("N/A") }}</p>
+
+<h2 class="section">Estimates</h2>
+{% if estimates_table_has_data %}
+<table>
+  <tr><th>Rs. Cr</th>{% for y in estimates_table.years %}<th>{{ y }}</th>{% endfor %}</tr>
+  {% for row_name, values in estimates_table.rows.items() %}
+  <tr><td>{{ row_name | display_label }}</td>
+    {% for v in values %}<td>{% if v is not none %}{{ v }}{% else %}<span class="na">N/A</span>{% endif %}</td>{% endfor %}
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p class="na">Forward estimates not provided in source document.</p>
+{% endif %}
+
+<!-- ============ PAGE 2 ============ -->
+<div class="page-break"></div>
+<div class="brand-bar"><h1>Key Highlights &amp; Charts</h1></div>
+
+<ul class="bullets" style="margin-top:8px;">
+  {% for b in narrative.key_highlights_page2 %}<li>{{ b }}</li>{% endfor %}
+</ul>
+
+<div class="chart-grid">
+  {% for key, img_b64 in charts.items() %}
+  <div><img src="data:image/png;base64,{{ img_b64 }}"></div>
+  {% endfor %}
+</div>
+{% if not charts %}<p class="na">No chart data available from source document.</p>{% endif %}
+
+{% if change_in_estimates %}
+<h2 class="section">Change in Estimates</h2>
+<table>
+  <tr><th>Metric</th><th colspan="2">Old</th><th colspan="2">New</th><th colspan="2">Change (%)</th></tr>
+  {% for row in change_in_estimates %}
+  <tr><td>{{ row.metric }}</td><td>{{ row.old_1 }}</td><td>{{ row.old_2 }}</td>
+      <td>{{ row.new_1 }}</td><td>{{ row.new_2 }}</td><td>{{ row.chg_1 }}</td><td>{{ row.chg_2 }}</td></tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+<!-- ============ PAGE 3: Consolidated Financials ============ -->
+{% if consolidated_financials %}
+<div class="page-break"></div>
+<div class="brand-bar"><h1>Consolidated Financials</h1></div>
+{% for table_name, table_data in consolidated_financials.items() %}
+<h2 class="section">{{ table_name | replace("_"," ") | title }}</h2>
+<table>
+  <tr><th>Rs. Cr</th>{% for y in table_data.years %}<th>{{ y }}</th>{% endfor %}</tr>
+  {% for row_name, values in table_data.rows.items() %}
+  <tr><td>{{ row_name | display_label }}</td>
+    {% for v in values %}<td>{% if v is not none %}{{ v }}{% else %}<span class="na">N/A</span>{% endif %}</td>{% endfor %}
+  </tr>
+  {% endfor %}
+</table>
+{% endfor %}
+{% endif %}
+
+<!-- ============ PAGE 4: Boilerplate (static, never AI-generated) ============ -->
+<div class="page-break"></div>
+<div class="brand-bar"><h1>Rating Criteria &amp; Disclaimer</h1></div>
+
+<h2 class="section">Investment Rating Criteria</h2>
+<table>
+  <tr>{% for col in rating_criteria.columns %}<th>{{ col }}</th>{% endfor %}</tr>
+  {% for row in rating_criteria.rows %}
+  <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+  {% endfor %}
+</table>
+
+<h2 class="section">Disclaimer</h2>
+<div class="disclaimer-text">{{ disclaimer }}</div>
+
+{% if extraction_metadata %}
+<h2 class="section">Data Verification Summary</h2>
+<div class="trust-strip">
+  <span><b>{{ extraction_metadata.verified_count | default(0) }}</b> fields verified against source document</span>
+  <span><b>{{ extraction_metadata.missing_fields | default([]) | length }}</b> fields flagged / not found (shown as N/A)</span>
+</div>
+{% if extraction_metadata.missing_fields %}
+<p style="font-size:7px;color:#888;">Fields not found or not verifiable in the source document: {{ extraction_metadata.missing_fields | join(", ") }}</p>
+{% endif %}
+{% endif %}
+
+<div class="footer">Generated by Bull AI Report Engine &mdash; every figure above is traced back to the source document; unverifiable figures are marked N/A rather than estimated &mdash; not investment advice</div>
+
+</body>
+</html>

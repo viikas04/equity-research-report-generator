@@ -1,0 +1,17 @@
+# secrets - never commit
+.env
+*.env
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# generated output
+*.pdf
+!samples/sample_output.pdf
+samples/page-*.jpg
+
+# os junk
+.DS_Store

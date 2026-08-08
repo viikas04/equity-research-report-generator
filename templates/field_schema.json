@@ -1,0 +1,98 @@
+{
+  "_comment": "Single source of truth for every field the report needs. Adding a new field = add an entry here + reference it in report.html. No Python code changes needed.",
+
+  "meta": {
+    "company_name": { "type": "string", "required": true },
+    "sector": { "type": "string", "required": true },
+    "report_date": { "type": "string", "required": true, "format": "DD Month, YYYY" },
+    "analyst_name": { "type": "string", "required": false, "default": "Research Team" }
+  },
+
+  "rating_block": {
+    "rating": { "type": "string", "enum": ["BUY", "ACCUMULATE", "HOLD", "REDUCE", "SELL", "NOT RATED"], "required": true },
+    "target_price": { "type": "number", "required": true },
+    "cmp": { "type": "number", "required": true },
+    "return_pct": { "type": "number", "required": true, "derived_from": "(target_price - cmp) / cmp * 100" },
+    "stock_type": { "type": "string", "enum": ["Large Cap", "Mid Cap", "Small Cap"], "required": false },
+    "bloomberg_code": { "type": "string", "required": false },
+    "nse_code": { "type": "string", "required": false },
+    "bse_code": { "type": "string", "required": false },
+    "time_frame": { "type": "string", "default": "12 Months" }
+  },
+
+  "company_data": {
+    "market_cap_cr": { "type": "number", "required": false },
+    "week_52_high": { "type": "number", "required": false },
+    "week_52_low": { "type": "number", "required": false },
+    "enterprise_value_cr": { "type": "number", "required": false },
+    "outstanding_shares_cr": { "type": "number", "required": false },
+    "free_float_pct": { "type": "number", "required": false },
+    "dividend_yield_pct": { "type": "number", "required": false },
+    "avg_volume_6m_cr": { "type": "number", "required": false },
+    "beta": { "type": "number", "required": false },
+    "face_value": { "type": "number", "required": false }
+  },
+
+  "shareholding": {
+    "type": "table",
+    "columns": ["category", "q_minus_2", "q_minus_1", "q_latest"],
+    "rows": ["Promoters", "FIIs", "MFs/Institutions", "Public", "Others"]
+  },
+
+  "price_performance": {
+    "type": "table",
+    "columns": ["metric", "3m", "6m", "1y"],
+    "rows": ["Absolute Return", "Absolute Index", "Relative Return"]
+  },
+
+  "narrative": {
+    "company_overview": { "type": "paragraph", "required": true, "ai_generated": true, "max_words": 60 },
+    "key_bullets": { "type": "bullet_list", "required": true, "ai_generated": true, "min_items": 3, "max_items": 6 },
+    "outlook_valuation": { "type": "paragraph", "required": true, "ai_generated": true, "max_words": 120 },
+    "key_highlights_page2": { "type": "bullet_list", "required": true, "ai_generated": true, "min_items": 4, "max_items": 6 }
+  },
+
+  "estimates_table": {
+    "type": "table",
+    "columns": ["FY_A_minus_1", "FY_A", "FY_E_plus_1", "FY_E_plus_2"],
+    "rows": ["Sales", "Growth_pct", "EBITDA", "EBITDA_Margin_pct", "PAT_Adjusted", "Growth_pct_2", "Adjusted_EPS", "Growth_pct_3", "PE", "PB", "EV_EBITDA", "ROE_pct", "DE"]
+  },
+
+  "quarterly_financials": {
+    "type": "table",
+    "columns": ["Q_latest", "Q_yoy", "yoy_growth_pct", "Q_qoq", "qoq_growth_pct"],
+    "rows": ["Sales", "EBITDA", "Margin_pct", "EBIT", "PBT", "Rep_PAT", "Adj_PAT", "Adj_EPS"]
+  },
+
+  "charts": {
+    "type": "chart_list",
+    "available_types": ["revenue_trend", "gross_order_value", "ebitda_margin", "pat_margin"],
+    "min_required": 1,
+    "each_chart": { "quarters": "array", "primary_metric": "array", "secondary_metric_pct": "array" }
+  },
+
+  "change_in_estimates": {
+    "type": "table",
+    "optional": true,
+    "columns": ["metric", "old_FY_E", "old_FY_E2", "new_FY_E", "new_FY_E2", "change_pct_1", "change_pct_2"]
+  },
+
+  "consolidated_financials": {
+    "type": "table_group",
+    "optional_if_time_constrained": true,
+    "tables": ["profit_and_loss", "balance_sheet", "cashflow", "ratios"],
+    "years": ["FY_A_minus_2", "FY_A_minus_1", "FY_A", "FY_E_plus_1", "FY_E_plus_2"]
+  },
+
+  "static_boilerplate": {
+    "_comment": "Page 4 content - identical across all companies, never sent to the LLM.",
+    "rating_criteria": { "type": "static", "source": "static/rating_criteria.json" },
+    "disclaimer": { "type": "static", "source": "static/disclaimer.txt" }
+  },
+
+  "extraction_metadata": {
+    "_comment": "Populated by the verification pass, not user-facing content - drives the confidence/grounding UI feature.",
+    "field_sources": { "type": "map", "description": "field_name -> {source_quote, page_number, confidence}" },
+    "missing_fields": { "type": "array", "description": "fields the LLM could not find in the source doc" }
+  }
+}

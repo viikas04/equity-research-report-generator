@@ -1,0 +1,16 @@
+DISCLAIMER
+
+This report is generated for informational purposes only using an automated
+research-report pipeline. It does not constitute investment advice, and the
+figures, targets, and narrative content are derived from the source document
+provided at generation time using AI-assisted extraction. Extracted figures
+that could not be verified against the source document are marked "N/A"
+rather than estimated.
+
+Investment in securities markets is subject to market risk. Please read all
+related documents carefully before investing. This report should not be
+treated as a substitute for professional financial advice.
+
+Ratings are based on a 12-month horizon and reflect the return implied by
+the stated target price relative to the current market price at the time of
+generation.

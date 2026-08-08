@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bull AI — Research Report Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F6F4EE;
+    --paper-dim: #EEEAE0;
+    --ink: #14201D;
+    --ink-soft: #4B554F;
+    --teal: #0E9488;
+    --teal-deep: #0A6E64;
+    --amber: #D98F3C;
+    --rule: #D9D3C3;
+    --rule-dark: #B8B09A;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, serif;
+    min-height: 100vh;
+  }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  /* ---------- masthead ---------- */
+  .masthead {
+    border-bottom: 1px solid var(--rule-dark);
+    padding: 14px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .masthead .brand { font-weight: 600; font-size: 16px; letter-spacing: 0.01em; }
+  .masthead .tag { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--ink-soft); letter-spacing: 0.06em; text-transform: uppercase; }
+
+  /* ---------- layout ---------- */
+  .stage {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 28px 80px;
+  }
+  .kicker {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--teal-deep);
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-size: 38px;
+    font-weight: 500;
+    line-height: 1.15;
+    margin: 0 0 14px;
+    max-width: 640px;
+  }
+  .lede {
+    font-size: 16px;
+    color: var(--ink-soft);
+    max-width: 520px;
+    line-height: 1.55;
+    margin: 0 0 40px;
+  }
+
+  /* ---------- the working document ---------- */
+  .ledger {
+    background: white;
+    border: 1px solid var(--rule-dark);
+    box-shadow: 6px 6px 0 var(--paper-dim), 6px 6px 0 1px var(--rule-dark);
+  }
+  .ledger-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .ledger-head .num { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; opacity: 0.7; }
+  .ledger-head .title { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  .ledger-body { padding: 28px 32px 32px; }
+
+  .field {
+    margin-bottom: 22px;
+  }
+  .field label {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+  .field label .n { color: var(--teal); margin-right: 6px; }
+  input[type=text] {
+    width: 100%;
+    border: none;
+    border-bottom: 1.5px solid var(--rule-dark);
+    background: transparent;
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    padding: 6px 2px 10px;
+    color: var(--ink);
+  }
+  input[type=text]:focus { outline: none; border-bottom-color: var(--teal); }
+  input[type=text]::placeholder { color: #B8B3A3; }
+
+  .drop {
+    border: 1.5px dashed var(--rule-dark);
+    padding: 26px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    position: relative;
+  }
+  .drop:hover, .drop.hover { border-color: var(--teal); background: #F8FBFA; }
+  .drop.filled { border-color: var(--teal); border-style: solid; background: #F8FBFA; }
+  .drop input { display: none; }
+  .drop-text { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-soft); }
+  .drop-sub { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #B8B3A3; margin-top: 4px; }
+  .drop.filled .drop-text { color: var(--teal-deep); font-weight: 500; }
+
+  button.submit {
+    width: 100%;
+    margin-top: 28px;
+    padding: 16px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  button.submit:hover:not(:disabled) { background: var(--teal-deep); }
+  button.submit:disabled { background: var(--rule-dark); color: white; cursor: not-allowed; }
+
+  /* ---------- the signature element: live verification ledger ---------- */
+  .tape-wrap {
+    display: none;
+    margin-top: 28px;
+    border-top: 1px solid var(--rule);
+    padding-top: 20px;
+  }
+  .tape-wrap.show { display: block; }
+  .tape-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+  }
+  .tape {
+    background: var(--ink);
+    color: #B9E4DE;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    line-height: 1.9;
+    padding: 16px 18px;
+    max-height: 190px;
+    overflow-y: auto;
+  }
+  .tape .line { opacity: 0; animation: tapeIn 0.35s forwards; display: flex; gap: 10px; }
+  .tape .line .check { color: var(--amber); width: 14px; flex-shrink: 0; }
+  .tape .line .txt { color: #B9E4DE; }
+  .tape .line.pending .check { color: #5A6E68; }
+  .tape .line.pending .txt { color: #6E8781; }
+  @keyframes tapeIn { to { opacity: 1; } }
+
+  .result {
+    display: none;
+    margin-top: 20px;
+    padding: 18px 20px;
+    background: #F8FBFA;
+    border: 1px solid var(--teal);
+    align-items: center;
+    justify-content: space-between;
+  }
+  .result.show { display: flex; }
+  .result .stamp { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--teal-deep); text-transform: uppercase; letter-spacing: 0.06em; }
+  .result a {
+    background: var(--teal);
+    color: white;
+    text-decoration: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 10px 18px;
+  }
+  .result a:hover { background: var(--teal-deep); }
+
+  .error-box {
+    display: none;
+    margin-top: 20px;
+    padding: 14px 18px;
+    background: #FBEEEA;
+    border: 1px solid #C4593E;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: #8C3A26;
+  }
+  .error-box.show { display: block; }
+
+  .footnote {
+    margin-top: 24px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-soft);
+    text-align: center;
+    letter-spacing: 0.02em;
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <span class="brand">Bull AI</span>
+  <span class="tag mono">Research Report Engine</span>
+</div>
+
+<div class="stage">
+  <div class="kicker mono">Automated equity research</div>
+  <h1>Turn a financial document into a research report you'd actually trust.</h1>
+  <p class="lede">Upload a company's financial context — a results PDF, a CSV, plain text.
+     Every number in the output is traced back to its source; anything that can't
+     be verified is marked, not guessed.</p>
+
+  <div class="ledger">
+    <div class="ledger-head">
+      <span class="num mono">FORM 01</span>
+      <span class="title mono">Generate Report</span>
+    </div>
+    <div class="ledger-body">
+      <form id="form">
+        <div class="field">
+          <label><span class="n">01</span>Company Name</label>
+          <input type="text" id="company" placeholder="e.g. JSW Energy Ltd." required>
+        </div>
+
+        <div class="field">
+          <label><span class="n">02</span>Context Document</label>
+          <div class="drop" id="drop">
+            <input type="file" id="file" accept=".pdf,.csv,.txt,.md" required>
+            <div class="drop-text" id="dropText">Drop a file, or click to browse</div>
+            <div class="drop-sub">PDF · CSV · TXT — up to 20MB</div>
+          </div>
+        </div>
+
+        <button type="submit" class="submit" id="submitBtn">Generate Report</button>
+      </form>
+
+      <div class="tape-wrap" id="tapeWrap">
+        <div class="tape-label mono">Verification tape</div>
+        <div class="tape mono" id="tape"></div>
+      </div>
+
+      <div class="error-box" id="errorBox"></div>
+
+      <div class="result" id="result">
+        <span class="stamp">Report generated &amp; verified</span>
+        <a href="#" id="downloadLink" download>Download PDF</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="footnote">Not investment advice · figures are extracted and verified from your uploaded document only</div>
+</div>
+
+<script>
+const form = document.getElementById('form');
+const drop = document.getElementById('drop');
+const fileInput = document.getElementById('file');
+const dropText = document.getElementById('dropText');
+const submitBtn = document.getElementById('submitBtn');
+const tapeWrap = document.getElementById('tapeWrap');
+const tape = document.getElementById('tape');
+const result = document.getElementById('result');
+const downloadLink = document.getElementById('downloadLink');
+const errorBox = document.getElementById('errorBox');
+
+drop.addEventListener('click', () => fileInput.click());
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('hover'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('hover'));
+drop.addEventListener('drop', e => {
+  e.preventDefault();
+  drop.classList.remove('hover');
+  fileInput.files = e.dataTransfer.files;
+  updateDropText();
+});
+fileInput.addEventListener('change', updateDropText);
+
+function updateDropText() {
+  if (fileInput.files.length) {
+    dropText.textContent = fileInput.files[0].name;
+    drop.classList.add('filled');
+  }
+}
+
+// The verification tape is the signature element: it narrates the real
+// pipeline stages (upload -> extract -> verify -> render) so the trust
+// mechanism that's actually in the backend is visible while it runs,
+// not just described in a README.
+const TAPE_STEPS = [
+  'reading source document…',
+  'extracting financial fields…',
+  'extracting narrative & highlights…',
+  'cross-checking figures against source…',
+  'flagging unverifiable fields as N/A…',
+  'rendering charts…',
+  'composing report layout…',
+];
+
+let tapeTimer = null;
+
+function runTape() {
+  tape.innerHTML = '';
+  tapeWrap.classList.add('show');
+  let i = 0;
+  const addLine = () => {
+    if (i >= TAPE_STEPS.length) return;
+    const line = document.createElement('div');
+    line.className = 'line pending';
+    line.innerHTML = `<span class="check">·</span><span class="txt">${TAPE_STEPS[i]}</span>`;
+    tape.appendChild(line);
+    tape.scrollTop = tape.scrollHeight;
+    setTimeout(() => {
+      line.classList.remove('pending');
+      line.querySelector('.check').textContent = '✓';
+    }, 550);
+    i++;
+    tapeTimer = setTimeout(addLine, 900);
+  };
+  addLine();
+}
+
+function stopTape(success) {
+  clearTimeout(tapeTimer);
+  if (success) {
+    [...tape.querySelectorAll('.line')].forEach(l => {
+      l.classList.remove('pending');
+      l.querySelector('.check').textContent = '✓';
+    });
+  }
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  result.classList.remove('show');
+  errorBox.classList.remove('show');
+  submitBtn.disabled = true;
+  runTape();
+
+  const formData = new FormData();
+  formData.append('company_name', document.getElementById('company').value);
+  formData.append('file', fileInput.files[0]);
+
+  try {
+    const res = await fetch('/api/generate-report', { method: 'POST', body: formData });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Something went wrong.' }));
+      throw new Error(err.detail || 'Generation failed.');
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    downloadLink.href = url;
+    stopTape(true);
+    result.classList.add('show');
+  } catch (err) {
+    stopTape(false);
+    errorBox.textContent = err.message;
+    errorBox.classList.add('show');
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+</script>
+
+</body>
+</html>

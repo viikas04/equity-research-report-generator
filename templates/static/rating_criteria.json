@@ -1,0 +1,9 @@
+{
+  "columns": ["Rating", "Large caps", "Midcaps", "Small Caps"],
+  "rows": [
+    ["Buy", "Upside is above 10%", "Upside is above 15%", "Upside is above 20%"],
+    ["Accumulate", "-", "Upside is between 10%-15%", "Upside is between 10%-20%"],
+    ["Hold", "Upside is between 0%-10%", "Upside is between 0%-10%", "Upside is between 0%-10%"],
+    ["Reduce/Sell", "Downside is more than 0%", "Downside is more than 0%", "Downside is more than 0%"]
+  ]
+}

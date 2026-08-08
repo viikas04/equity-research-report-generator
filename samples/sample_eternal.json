@@ -1,0 +1,65 @@
+{
+  "meta": {"company_name": "Eternal Ltd.", "sector": "Internet & Catalogue Retail", "report_date": "29 July, 2025"},
+  "rating_block": {"rating": "HOLD", "target_price": 337, "cmp": 306, "return_pct": 10.1, "time_frame": "12 Months"},
+  "company_data": {
+    "market_cap_cr": 295735, "week_52_high": 314, "enterprise_value_cr": 294166,
+    "outstanding_shares_cr": 965.0, "free_float_pct": 71.9, "beta": 1.0
+  },
+  "shareholding": [
+    {"category": "Promoters", "q_minus_2": 0.0, "q_minus_1": 0.0, "q_latest": 0.0},
+    {"category": "FIIs", "q_minus_2": 47.3, "q_minus_1": 44.4, "q_latest": 42.3},
+    {"category": "MFs/Institutions", "q_minus_2": 20.5, "q_minus_1": 23.6, "q_latest": 26.6},
+    {"category": "Public", "q_minus_2": 8.0, "q_minus_1": 8.5, "q_latest": 7.6}
+  ],
+  "narrative": {
+    "company_overview": "Eternal Limited, formerly Zomato Limited, operates an online food delivery platform under the Zomato brand, alongside Blinkit (quick commerce) and Hyperpure (B2B supplies).",
+    "key_bullets": [
+      "Consolidated revenue surged 70.4% YoY in Q1FY26 to Rs. 7,167cr.",
+      "Quick commerce revenue soared 154.8% YoY to Rs. 2,400cr.",
+      "EBITDA fell 35.0% YoY to Rs. 115cr due to higher operating expenses.",
+      "Blinkit added 243 new stores, taking the total to 1,544."
+    ],
+    "outlook_valuation": "Eternal is positioned for long-term growth driven by its quick commerce business, though rich valuations limit near-term upside. Rating downgraded to HOLD with a revised target of Rs. 337, based on 6x FY27 price/sales.",
+    "key_highlights_page2": [
+      "Food delivery NOV growth eased to 13% YoY in Q1FY26 from 14% in the prior quarter.",
+      "Food delivery margins declined QoQ due to seasonal factors (festivals, weather).",
+      "Blinkit NOV grew 127% YoY, driven by a 123% rise in average monthly transacting customers.",
+      "Company transitioning quick commerce from marketplace to inventory ownership over 2-3 quarters."
+    ]
+  },
+  "estimates_table": {
+    "years": ["FY25A", "FY26E", "FY27E"],
+    "rows": {
+      "Sales": [20243, 35020, 54632],
+      "EBITDA": [637, 1248, 3575],
+      "PAT_Adjusted": [527, 927, 2643],
+      "Adjusted_EPS": [0.6, 1.0, 2.7]
+    }
+  },
+  "charts": {
+    "revenue_trend": {
+      "quarters": ["Q1FY25", "Q2FY25", "Q3FY25", "Q4FY25", "Q1FY26"],
+      "values": [4206, 5405, 5827, 5833, 7167],
+      "growth_pct": [14.1, 12.6, 15.4, 22.9, 22.9]
+    },
+    "ebitda_margin": {
+      "quarters": ["Q1FY25", "Q2FY25", "Q3FY25", "Q4FY25", "Q1FY26"],
+      "values": [177, 227, 145, 72, 115],
+      "growth_pct": [4.2, 4.7, 3.0, 1.2, 1.6]
+    }
+  },
+  "extraction_metadata": {
+    "field_sources": {
+      "rating_block.target_price": "revised target price of Rs. 337",
+      "rating_block.cmp": "CMP Rs. 306",
+      "company_data.market_cap_cr": "Market Cap (Rs.cr) 295,735"
+    },
+    "missing_fields": ["company_data.dividend_yield_pct"]
+  },
+  "consolidated_financials": {
+    "profit_and_loss": {
+      "years": ["FY24A", "FY25A", "FY26E"],
+      "rows": {"Sales": [12114, 20243, 35020], "EBITDA": [42, 637, 1248], "Reported_PAT": [351, 527, 927]}
+    }
+  }
+}
