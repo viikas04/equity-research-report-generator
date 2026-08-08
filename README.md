@@ -1,5 +1,8 @@
 # Bull AI — Research Report Generator
 
+**Live demo:** https://equity-research-report-generator.onrender.com
+*(free tier — first request after inactivity may take up to a minute to wake up)*
+
 Upload a company's financial context document (PDF/CSV/TXT), get back a
 formatted PDF research report — tables, narrative summaries, and charts —
 matching the layout of the provided Geojit sample.
@@ -22,25 +25,20 @@ criteria actually means for a finance product: no invented numbers, ever.
 
 ## Architecture
 
-```
-Upload (PDF/CSV/TXT)
-        │
-        ▼
-backend/extract.py  ── load_source_text()   → raw text
-                     ── extract_fields()     → structured JSON + source quotes  (LLM pass 1)
-                     ── verify_extraction()  → nulls out unverifiable fields    (LLM pass 2)
-        │
-        ▼
-backend/charts.py   ── renders bar+line combo charts (matplotlib) from the
-                        extracted quarterly series → base64 PNGs
-        │
-        ▼
-backend/render.py   ── fills templates/report.html (Jinja2) with the data
-                        + charts, converts to PDF via WeasyPrint
-        │
-        ▼
-backend/main.py     ── FastAPI endpoint tying it together, serves frontend/
-```
+The pipeline runs in five stages, each in its own file:
+
+1. **Upload** (PDF/CSV/TXT) comes in through the frontend.
+2. **`backend/extract.py`** — `load_source_text()` pulls raw text plus
+   separately-parsed tables out of the source file; `extract_fields()`
+   sends it to Gemini for structured JSON with source quotes (LLM pass 1);
+   `verify_extraction()` re-checks every field and nulls out anything
+   unverifiable (LLM pass 2).
+3. **`backend/charts.py`** — renders bar+line combo charts (matplotlib)
+   from the extracted quarterly series, as base64 PNGs.
+4. **`backend/render.py`** — fills `templates/report.html` (Jinja2) with
+   the data and charts, then converts it to a PDF via WeasyPrint.
+5. **`backend/main.py`** — the FastAPI endpoint tying all of the above
+   together, and serving the frontend.
 
 ## Where report fields are defined
 
@@ -59,17 +57,26 @@ Page 4 (rating criteria + disclaimer) is **static**, defined in
 `templates/static/`, and is never sent to the LLM — it's identical for
 every company, so there's no reason to burn tokens regenerating it.
 
-## Running it
+## Running it locally
 
-```bash
-cd backend
-pip install -r requirements.txt
-cp ../.env.example ../.env   # then edit .env and paste your real Gemini key
-uvicorn main:app --reload --app-dir .
-```
+    cd backend
+    pip install -r requirements.txt
+    cp ../.env.example ../.env
+    # then edit .env and paste your real Gemini key
+    uvicorn main:app --reload --app-dir .
 
 Then open `http://localhost:8000` — upload a company name + a financial
 document, and download the generated PDF.
+
+### Running it with Docker
+
+The included `Dockerfile` bundles the system libraries WeasyPrint needs
+for PDF rendering, so it works consistently regardless of host OS:
+
+    docker build -t equity-research-report-generator .
+    docker run -p 8000:8000 -e GEMINI_API_KEY=your_key_here equity-research-report-generator
+
+This is also how the live demo above is deployed (on Render, free tier).
 
 ### Testing the pipeline without the API
 
@@ -78,19 +85,21 @@ document, and download the generated PDF.
 You can render it directly, skipping the LLM calls, to sanity-check the
 PDF layout:
 
-```bash
-cd backend
-python3 render.py ../samples/sample_eternal.json ../samples/test_output.pdf
-```
+    cd backend
+    python3 render.py ../samples/sample_eternal.json ../samples/test_output.pdf
 
 ## Tech used
 
 - **FastAPI** — backend API
-- **Google Gemini** (`gemini-2.0-flash`, free tier) — extraction + verification.
-  Get a free key at https://aistudio.google.com/apikey — no card required.
-- **pdfplumber** — PDF text extraction from uploaded source documents
+- **Google Gemini** (`gemini-flash-lite-latest`, free tier) — extraction +
+  verification. Get a free key at https://aistudio.google.com/apikey — no
+  card required. Uses the `-latest` alias rather than a pinned version, so
+  it keeps working as Google rotates model versions.
+- **pdfplumber** — PDF text extraction, including a separate table-parsing
+  pass so multi-column layouts don't get scrambled into plain text
 - **matplotlib** — chart generation
 - **Jinja2 + WeasyPrint** — HTML → PDF report rendering
+- **Docker** — for consistent deployment across environments
 - Plain HTML/CSS/JS frontend — no build step
 
 ## Security
@@ -127,3 +136,5 @@ choice, not an oversight).
 - Currently supports one context document per report. Multi-document
   merging (e.g. a PDF + a supplementary CSV) is a straightforward
   extension of `load_source_text()`.
+- Free-tier hosting means the live demo cold-starts after ~15 minutes of
+  inactivity — the first request after a gap can take up to a minute.
